@@ -22,7 +22,9 @@ class BoletaCirculacionController extends Controller
         $boletas = BoletaCirculacion::with(['vehicle', 'emisor'])
             ->when($query !== '', fn ($builder) => $builder->where(fn ($sub) => $sub
                 ->where('folio', 'like', "%{$query}%")
-                ->orWhereHas('vehicle', fn ($vehicle) => $vehicle->where('placa', 'like', "%{$query}%"))))
+                ->orWhereHas('vehicle', fn ($vehicle) => $vehicle
+                    ->where('numero_equipo', 'like', "%{$query}%")
+                    ->orWhere('placa', 'like', "%{$query}%"))))
             ->when($request->filled('estado'), fn ($builder) => $builder->where('estado', $request->string('estado')))
             ->when($request->filled('desde'), fn ($builder) => $builder->whereDate('fecha_emision', '>=', $request->date('desde')))
             ->when($request->filled('hasta'), fn ($builder) => $builder->whereDate('fecha_emision', '<=', $request->date('hasta')))

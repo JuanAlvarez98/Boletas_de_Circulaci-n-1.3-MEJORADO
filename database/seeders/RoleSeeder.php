@@ -21,8 +21,8 @@ class RoleSeeder extends Seeder
         ]);
 
         $operator = Role::updateOrCreate(['slug' => 'operador-emisor'], [
-            'name' => 'Operador / Emisor',
-            'description' => 'Acceso exclusivo al Panel de Control, Ficha de Vehículo, Boletas de Circulación y Actas de Entrega con permisos completos de emisión y gestión operativa.',
+            'name' => 'Operador',
+            'description' => 'Acceso a Dashboard y únicamente al módulo Ficha de Vehículo para ejecutar consultas en el Web Service SAP (solo lectura).',
         ]);
 
         $supervisor = Role::updateOrCreate(['slug' => 'supervisor'], [

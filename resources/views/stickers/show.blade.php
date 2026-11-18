@@ -48,7 +48,7 @@
     @if (session('status'))
         <div class="alert alert-success no-print">{{ session('status') }}</div>
     @endif
-    @if(Auth::user()->hasAnyRole(['admin','operator']) && $sticker->estado === 'activo')
+    @if(Auth::user()->hasRole('admin') && $sticker->estado === 'activo')
         <form class="no-print" method="POST" action="{{ route('stickers.destroy',$sticker) }}" style="display:flex;gap:10px;margin-bottom:18px">@csrf @method('DELETE')
             <input name="motivo_anulacion" required minlength="10" maxlength="500" placeholder="Motivo de anulación" style="flex:1;padding:9px;border:1px solid #cbd5e1;border-radius:7px">
             <button class="btn-logout" type="submit" onclick="return confirm('¿Anular este sticker?')">Anular sticker</button>
@@ -56,7 +56,7 @@
     @endif
 
     <div class="sticker-card">
-        <div class="institucion">Sistema de Control de Boletas de Circulación</div>
+        <div class="institucion">Sistema de Flota Vehicular</div>
         <div class="titulo">Sticker de Identificación Vehicular</div>
 
         <div class="placa">{{ $sticker->vehicle->placa }}</div>

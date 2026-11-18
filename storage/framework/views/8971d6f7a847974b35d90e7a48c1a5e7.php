@@ -12,7 +12,7 @@
         <!-- Cabecera (Header) con Gradiente Institucional -->
         <div style="background: #1e3a8a; background: linear-gradient(135deg, #1e3a8a, #0d9488); padding: 30px 20px; text-align: center;">
             <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif;">
-                SIG / Boletas de Circulación
+                SIG / Flota Vehicular
             </h1>
         </div>
         
@@ -36,7 +36,7 @@
         <!-- Pie de página (Footer) -->
         <div style="background-color: #f9fafb; padding: 20px; text-align: center; font-size: 11px; color: #9ca3af; border-top: 1px solid #f3f4f6; font-family: 'Segoe UI', Arial, sans-serif;">
             <p style="margin: 4px 0;">Este es un correo automático de seguridad, por favor no responda a este mensaje.</p>
-            <p style="margin: 4px 0;">&copy; <?php echo e(date('Y')); ?> SIG - Control de Boletas de Circulación</p>
+            <p style="margin: 4px 0;">&copy; <?php echo e(date('Y')); ?> SIG - Flota Vehicular</p>
         </div>
         
     </div>

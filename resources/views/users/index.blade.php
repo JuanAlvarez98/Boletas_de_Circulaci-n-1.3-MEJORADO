@@ -68,8 +68,8 @@
                                     @forelse($user->roles as $role)
                                         @if($role->slug === 'admin')
                                             <span class="badge badge-primary">Admin</span>
-                                        @elseif($role->slug === 'operador-emisor')
-                                            <span class="badge badge-success">Operador Emisor</span>
+                                        @elseif($role->slug === 'operador-emisor' || $role->slug === 'operator')
+                                            <span class="badge badge-success">Operador</span>
                                         @elseif($role->slug === 'supervisor')
                                             <span class="badge badge-warning">Supervisor</span>
                                         @else

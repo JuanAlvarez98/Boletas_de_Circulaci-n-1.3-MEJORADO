@@ -44,6 +44,21 @@
         border: 1.5px solid #bfdbfe;
         display: inline-block;
     }
+    @media (max-width: 640px) {
+        .ficha-grid {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 16px 14px;
+        }
+        .ficha-item {
+            padding: 12px 14px;
+        }
+    }
+    @media (max-width: 380px) {
+        .ficha-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 <?php $__env->stopSection(); ?>
 
@@ -52,14 +67,20 @@
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap: wrap; gap: 16px; width: 100%;">
             <div>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                    <span class="placa-banner"><?php echo e($vehicle->placa); ?></span>
-                    <h2 class="welcome-title" style="margin-bottom: 0;"><?php echo e($vehicle->marca); ?> <?php echo e($vehicle->modelo); ?></h2>
+                    <span class="placa-banner"><?php echo e($vehicle->placa ?: 'Equipo ' . $vehicle->numero_equipo); ?></span>
+                    <h2 class="welcome-title" style="margin-bottom: 0;"><?php echo e($vehicle->marca ?? ''); ?> <?php echo e($vehicle->modelo ?? 'Vehículo'); ?></h2>
                 </div>
-                <p class="welcome-subtitle">Registro institucional <?php echo e($vehicle->sap_codigo ? 'sincronizado con SAP (' . $vehicle->sap_codigo . ')' : 'local de la flota de seguridad'); ?>.</p>
+                <p class="welcome-subtitle">
+                    Información técnica oficial obtenida mediante el Web Service de SAP<?php echo e($vehicle->numero_equipo ? ' (Equipo: ' . $vehicle->numero_equipo . ')' : ''); ?>.
+                    <?php if($vehicle->dependencia): ?>
+                        · <?php echo e($vehicle->dependencia); ?>
+
+                    <?php endif; ?>
+                </p>
             </div>
             <a href="<?php echo e(route('vehicles.index')); ?>" class="btn-secondary">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                <span>Volver al buscador</span>
+                <span>Volver a la consulta de vehículos</span>
             </a>
         </div>
     </section>
@@ -71,30 +92,52 @@
         </div>
     <?php endif; ?>
 
+    <?php if(isset($errors) && $errors->any()): ?>
+        <div class="alert alert-danger" style="background: #fef2f2; border: 1.5px solid #fecaca; color: #991b1b; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span><?php echo e($errors->first()); ?></span>
+        </div>
+    <?php endif; ?>
+
     <!-- Ficha de Datos -->
     <div class="table-card">
         <div class="table-header">
-            <span class="table-title">Especificaciones Técnicas del Vehículo</span>
-            <?php if(auth()->guard()->check()): ?>
-                <?php if(Auth::user()->hasAnyRole(['admin', 'operador-emisor'])): ?>
-                    <a href="<?php echo e(route('vehicles.edit', $vehicle)); ?>" class="btn-secondary" style="padding: 6px 14px; font-size: 12.5px;">
-                        Editar Registro
-                    </a>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span class="table-title">Especificaciones Técnicas del Vehículo</span>
+                <span class="badge" style="background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">
+                    Datos Oficiales SAP PM
+                </span>
+                <?php if($vehicle->estado_sap): ?>
+                    <span class="badge" style="background-color: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px;">
+                        <?php echo e($vehicle->estado_sap); ?>
+
+                    </span>
                 <?php endif; ?>
+            </div>
+            <?php if($vehicle->numero_equipo || $vehicle->sap_codigo): ?>
+                <form method="POST" action="<?php echo e(route('vehicles.actualizar-sap', $vehicle)); ?>" style="margin: 0;">
+                    <?php echo csrf_field(); ?>
+                    <button type="submit" class="btn-secondary" style="padding: 6px 14px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;" title="Actualizar datos oficiales desde el servicio de SAP PM">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        <span>Actualizar desde SAP</span>
+                    </button>
+                </form>
             <?php endif; ?>
         </div>
 
         <div class="ficha-grid">
             <div class="ficha-item"><div class="label">No. de Equipo</div><div class="value"><?php echo e($vehicle->numero_equipo ?? '—'); ?></div></div>
-            <div class="ficha-item"><div class="label">Tipo</div><div class="value"><?php echo e($vehicle->linea ?? '—'); ?></div></div>
-            <div class="ficha-item"><div class="label">Marca</div><div class="value"><?php echo e($vehicle->marca); ?></div></div>
-            <div class="ficha-item"><div class="label">Modelo</div><div class="value"><?php echo e($vehicle->modelo); ?></div></div>
+            <div class="ficha-item"><div class="label">Marca</div><div class="value"><?php echo e($vehicle->marca ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Modelo</div><div class="value"><?php echo e($vehicle->modelo ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Tipo / Línea</div><div class="value"><?php echo e($vehicle->linea ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Tipo de Equipo</div><div class="value"><?php echo e($vehicle->tipo_equipo ?? '—'); ?></div></div>
             <div class="ficha-item"><div class="label">Año</div><div class="value"><?php echo e($vehicle->anio ?? '—'); ?></div></div>
-            <div class="ficha-item"><div class="label">Chasis / VIN</div><div class="value" style="font-family: monospace; font-size: 13.5px;"><?php echo e($vehicle->chasis); ?></div></div>
-            <div class="ficha-item"><div class="label">No. de Motor</div><div class="value" style="font-family: monospace; font-size: 13.5px;"><?php echo e($vehicle->motor ?? '—'); ?></div></div>
             <div class="ficha-item"><div class="label">Naturaleza / Origen</div><div class="value"><?php echo e($vehicle->naturaleza_origen ?? '—'); ?></div></div>
-            <div class="ficha-item"><div class="label">Placa / Registro</div><div class="value" style="color: var(--primary);"><?php echo e($vehicle->placa); ?></div></div>
-            <div class="ficha-item"><div class="label">Color</div><div class="value"><?php echo e($vehicle->color ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Dependencia Policial</div><div class="value"><?php echo e($vehicle->dependencia ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Placa / Registro</div><div class="value" style="color: var(--primary);"><?php echo e($vehicle->placa ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Chasis / VIN</div><div class="value" style="font-family: monospace; font-size: 13.5px;"><?php echo e($vehicle->chasis ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">No. de Motor</div><div class="value" style="font-family: monospace; font-size: 13.5px;"><?php echo e($vehicle->motor ?? '—'); ?></div></div>
+            <div class="ficha-item"><div class="label">Denominación SAP</div><div class="value"><?php echo e($vehicle->denominacion ?? '—'); ?></div></div>
         </div>
     </div>
 
@@ -105,10 +148,6 @@
                 <a href="<?php echo e(route('boletas.create', ['vehicle_id' => $vehicle->id])); ?>" class="btn-primary">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>Emitir Boleta de Circulación</span>
-                </a>
-                <a href="<?php echo e(route('actas.create', ['vehicle_id' => $vehicle->id])); ?>" class="btn-primary" style="background: linear-gradient(135deg, #7c3aed, #8b5cf6);">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                    <span>Registrar Acta de Entrega</span>
                 </a>
             </div>
         <?php endif; ?>

@@ -158,7 +158,7 @@
     <section class="welcome-section">
         <div>
             <h2 class="welcome-title">Bienvenido, {{ Auth::user()->name }}</h2>
-            <p class="welcome-subtitle">Panel general de control vehicular y emisión de boletas de circulación.</p>
+            <p class="welcome-subtitle">Panel general de gestión y control de Flota Vehicular.</p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <span class="badge badge-primary">
@@ -280,9 +280,11 @@
                     Vehículos cuyas boletas expirarán en un periodo igual o menor a 30 días
                 </div>
             </div>
-            <a href="{{ route('boletas.index', ['estado' => 'vigente']) }}" class="btn-secondary" style="font-size: 12.5px; padding: 6px 14px;">
-                Ver todas las vigentes →
-            </a>
+            @if(Auth::user()->hasAnyRole(['admin', 'supervisor']))
+                <a href="{{ route('boletas.index', ['estado' => 'vigente']) }}" class="btn-secondary" style="font-size: 12.5px; padding: 6px 14px;">
+                    Ver todas las vigentes →
+                </a>
+            @endif
         </div>
         
         <div class="table-responsive">
@@ -293,7 +295,9 @@
                         <th style="width: 30%;">Vehículo / Placa</th>
                         <th style="width: 25%;">Fecha de Vencimiento</th>
                         <th style="width: 15%; text-align: center;">Estado</th>
-                        <th style="width: 10%; text-align: right;">Acción</th>
+                        @if(Auth::user()->hasAnyRole(['admin', 'supervisor']))
+                            <th style="width: 10%; text-align: right;">Acción</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -321,15 +325,17 @@
                             <td style="text-align: center;">
                                 <span class="badge badge-warning">Por Vencer</span>
                             </td>
-                            <td style="text-align: right;">
-                                <a class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" href="{{ route('boletas.show', $boleta) }}">
-                                    Ver Boleta
-                                </a>
-                            </td>
+                            @if(Auth::user()->hasAnyRole(['admin', 'supervisor']))
+                                <td style="text-align: right;">
+                                    <a class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" href="{{ route('boletas.show', $boleta) }}">
+                                        Ver Boleta
+                                    </a>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 48px 24px; color: var(--text-muted);">
+                            <td colspan="{{ Auth::user()->hasAnyRole(['admin', 'supervisor']) ? 5 : 4 }}" style="text-align: center; padding: 48px 24px; color: var(--text-muted);">
                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 42px; height: 42px; color: #10b981;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -48,6 +48,11 @@ class ResetPasswordController extends Controller
             'email.email' => 'Por favor, ingrese un correo válido.',
             'password.required' => 'La nueva contraseña es obligatoria.',
             'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+            'password.min' => 'La contraseña debe tener al menos :min caracteres.',
+            'password.mixed' => 'La contraseña debe incluir al menos una letra mayúscula y una minúscula.',
+            'password.letters' => 'La contraseña debe incluir al menos una letra.',
+            'password.numbers' => 'La contraseña debe incluir al menos un número.',
+            'password.symbols' => 'La contraseña debe incluir al menos un carácter especial.',
         ]);
 
         // Intentar restablecer la contraseña usando el broker nativo de Laravel
@@ -64,12 +69,19 @@ class ResetPasswordController extends Controller
             }
         );
 
+        $messages = [
+            Password::PASSWORD_RESET => 'Su contraseña ha sido restablecida correctamente.',
+            Password::INVALID_TOKEN => 'Este enlace o token de restablecimiento de contraseña no es válido o ha expirado.',
+            Password::INVALID_USER => 'No encontramos ningún usuario registrado con esa dirección de correo electrónico.',
+            Password::RESET_THROTTLED => 'Por favor, espere unos momentos antes de volver a intentarlo.',
+        ];
+
         if ($status === Password::PASSWORD_RESET) {
-            return redirect()->route('login')->with('status', __($status));
+            return redirect()->route('login')->with('status', $messages[$status]);
         }
 
         throw ValidationException::withMessages([
-            'email' => [__($status)],
+            'email' => [$messages[$status] ?? __($status)],
         ]);
     }
 }

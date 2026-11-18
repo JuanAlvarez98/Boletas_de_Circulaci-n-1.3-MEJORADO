@@ -94,16 +94,28 @@
                     
                     <div class="role-info">
                         <span class="role-title">
-                            <?php echo e($role->name); ?> 
+                            <?php if($role->slug === 'operador-emisor' || $role->slug === 'operator'): ?>
+                                Operador
+                            <?php else: ?>
+                                <?php echo e($role->name); ?>
+
+                            <?php endif; ?>
                             <?php if($role->slug === 'admin'): ?>
                                 <span class="badge badge-primary" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">admin</span>
-                            <?php elseif($role->slug === 'operador-emisor'): ?>
-                                <span class="badge badge-success" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">SAP / Emisor</span>
+                            <?php elseif($role->slug === 'operador-emisor' || $role->slug === 'operator'): ?>
+                                <span class="badge badge-success" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">Consulta SAP</span>
                             <?php elseif($role->slug === 'supervisor'): ?>
                                 <span class="badge badge-warning" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">Auditor</span>
                             <?php endif; ?>
                         </span>
-                        <span class="role-desc"><?php echo e($role->description ?? 'Sin descripción para este rol.'); ?></span>
+                        <span class="role-desc">
+                            <?php if($role->slug === 'operador-emisor' || $role->slug === 'operator'): ?>
+                                Acceso a Dashboard y únicamente al módulo Ficha de Vehículo para ejecutar consultas en el Web Service SAP (solo lectura).
+                            <?php else: ?>
+                                <?php echo e($role->description ?? 'Sin descripción para este rol.'); ?>
+
+                            <?php endif; ?>
+                        </span>
                     </div>
                 </label>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

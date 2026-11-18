@@ -49,13 +49,27 @@
                     <?php $__empty_1 = true; $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
                             <td>
-                                <strong style="color: var(--text-main); font-size: 14px;"><?php echo e($role->name); ?></strong>
+                                <strong style="color: var(--text-main); font-size: 14px;">
+                                    <?php if($role->slug === 'operador-emisor' || $role->slug === 'operator'): ?>
+                                        Operador
+                                    <?php else: ?>
+                                        <?php echo e($role->name); ?>
+
+                                    <?php endif; ?>
+                                </strong>
                             </td>
                             <td>
                                 <span class="badge badge-primary" style="font-family: monospace;"><?php echo e($role->slug); ?></span>
                             </td>
                             <td>
-                                <span style="color: var(--text-secondary); font-size: 13.5px;"><?php echo e($role->description ?? 'Sin descripción disponible.'); ?></span>
+                                <span style="color: var(--text-secondary); font-size: 13.5px;">
+                                    <?php if($role->slug === 'operador-emisor' || $role->slug === 'operator'): ?>
+                                        Acceso a Dashboard y únicamente al módulo Ficha de Vehículo para ejecutar consultas en el Web Service SAP (solo lectura).
+                                    <?php else: ?>
+                                        <?php echo e($role->description ?? 'Sin descripción disponible.'); ?>
+
+                                    <?php endif; ?>
+                                </span>
                             </td>
                             <td style="text-align: center;">
                                 <span class="badge" style="background-color: #f1f5f9; color: var(--text-main); font-size: 13px; font-weight: 700; border: 1px solid #cbd5e1; padding: 4px 10px;">

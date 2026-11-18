@@ -64,12 +64,14 @@
             </div>
             <div style="display:flex; gap: 10px; flex-wrap: wrap;">
                 <a href="{{ route('vehicles.show', $acta->vehicle) }}" class="btn-secondary">← Volver a la Ficha</a>
-                <button onclick="document.getElementById('emailSendBox').style.display = document.getElementById('emailSendBox').style.display === 'none' ? 'block' : 'none'" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0ea5e9);">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span>{{ $acta->enviado_email_at ? 'Reenviar por Correo' : 'Enviar por Correo' }}</span>
-                </button>
+                @if(Auth::user()->hasRole('admin'))
+                    <button onclick="document.getElementById('emailSendBox').style.display = document.getElementById('emailSendBox').style.display === 'none' ? 'block' : 'none'" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0ea5e9);">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span>{{ $acta->enviado_email_at ? 'Reenviar por Correo' : 'Enviar por Correo' }}</span>
+                    </button>
+                @endif
                 <button onclick="window.print()" class="btn-primary">Imprimir Acta</button>
             </div>
         </div>
@@ -89,37 +91,39 @@
         </div>
     @endif
 
-    <!-- Panel de Envío Inmediato por Correo (Desplegable) -->
-    <div id="emailSendBox" class="email-action-bar no-print" style="display: {{ $acta->enviado_email_at ? 'none' : 'flex' }};">
-        <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
-            <div style="width: 40px; height: 40px; background: #e0f2fe; color: #0284c7; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 22px; height: 22px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                </svg>
-            </div>
-            <div>
-                <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">
-                    {{ $acta->enviado_email_at ? 'Reenvío de copia digital del acta' : 'Entrega digital del acta por correo' }}
+    @if(Auth::user()->hasRole('admin'))
+        <!-- Panel de Envío Inmediato por Correo (Desplegable) -->
+        <div id="emailSendBox" class="email-action-bar no-print" style="display: {{ $acta->enviado_email_at ? 'none' : 'flex' }};">
+            <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+                <div style="width: 40px; height: 40px; background: #e0f2fe; color: #0284c7; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
                 </div>
-                <div style="font-size: 12px; color: var(--text-muted);">
-                    @if($acta->enviado_email_at)
-                        Último envío realizado a <strong>{{ $acta->recibe_email }}</strong> el {{ $acta->enviado_email_at->format('d/m/Y H:i') }}.
-                    @else
-                        Envía al instante una copia oficial de esta acta al correo del receptor o a cualquier interesado.
-                    @endif
+                <div>
+                    <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">
+                        {{ $acta->enviado_email_at ? 'Reenvío de copia digital del acta' : 'Entrega digital del acta por correo' }}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        @if($acta->enviado_email_at)
+                            Último envío realizado a <strong>{{ $acta->recibe_email }}</strong> el {{ $acta->enviado_email_at->format('d/m/Y H:i') }}.
+                        @else
+                            Envía al instante una copia oficial de esta acta al correo del receptor o a cualquier interesado.
+                        @endif
+                    </div>
                 </div>
             </div>
+            <form method="POST" action="{{ route('actas.send-email', $acta) }}" style="display: flex; gap: 8px; flex-wrap: wrap; min-width: 300px;">
+                @csrf
+                <input type="email" name="email" value="{{ old('email', $acta->recibe_email) }}" placeholder="correo@ejemplo.com" required style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; min-width: 200px;">
+                <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                    <span>Enviar Ahora</span>
+                </button>
+            </form>
         </div>
-        <form method="POST" action="{{ route('actas.send-email', $acta) }}" style="display: flex; gap: 8px; flex-wrap: wrap; min-width: 300px;">
-            @csrf
-            <input type="email" name="email" value="{{ old('email', $acta->recibe_email) }}" placeholder="correo@ejemplo.com" required style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; min-width: 200px;">
-            <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 13px;">
-                <span>Enviar Ahora</span>
-            </button>
-        </form>
-    </div>
+    @endif
 
-    @if(Auth::user()->hasAnyRole(['admin','operator']) && $acta->estado === 'registrada')
+    @if(Auth::user()->hasRole('admin') && $acta->estado === 'registrada')
         <form class="no-print" method="POST" action="{{ route('actas.destroy',$acta) }}" style="display:flex;gap:10px;margin-bottom:18px">@csrf @method('DELETE')
             <input name="motivo_anulacion" required minlength="10" maxlength="500" placeholder="Motivo de anulación en caso de requerirse..." style="flex:1;padding:9px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13.5px;">
             <button class="btn-logout" type="submit" onclick="return confirm('¿Anular esta acta?')">Anular acta</button>
@@ -186,7 +190,7 @@
         </div>
 
         <div class="doc-footer">
-            Documento generado por el Sistema de Control de Boletas de Circulación Vehicular el {{ $acta->created_at->format('d/m/Y H:i') }}
+            Documento generado por el Sistema de Flota Vehicular el {{ $acta->created_at->format('d/m/Y H:i') }}
             @if($acta->enviado_email_at)
                 &bull; Notificado por correo el {{ $acta->enviado_email_at->format('d/m/Y H:i') }}
             @endif

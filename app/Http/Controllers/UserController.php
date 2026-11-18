@@ -14,7 +14,7 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    private const ALLOWED_ROLES = ['admin', 'operador-emisor', 'supervisor'];
+    private const ALLOWED_ROLES = ['admin', 'operador-emisor', 'operator', 'supervisor'];
 
     /**
      * Mostrar el formulario para registrar un usuario.
@@ -24,7 +24,8 @@ class UserController extends Controller
         $roles = Role::query()
             ->whereIn('slug', self::ALLOWED_ROLES)
             ->get()
-            ->sortBy(fn (Role $role) => array_search($role->slug, self::ALLOWED_ROLES, true));
+            ->sortBy(fn (Role $role) => array_search($role->slug, self::ALLOWED_ROLES, true))
+            ->unique(fn (Role $role) => in_array($role->slug, ['operador-emisor', 'operator'], true) ? 'operador' : $role->slug);
 
         return view('users.create', compact('roles'));
     }
@@ -36,6 +37,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'role' => [
@@ -45,6 +47,14 @@ class UserController extends Controller
                 Rule::exists('roles', 'slug'),
             ],
         ], [
+            'name.required' => 'El nombre completo es obligatorio.',
+            'username.required' => 'El nombre de usuario es obligatorio.',
+            'username.unique' => 'Este nombre de usuario ya está registrado.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingrese una dirección de correo electrónico válida.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe contener al menos 8 caracteres.',
             'password.confirmed' => 'La confirmación de la contraseña no coincide.',
             'role.required' => 'Debe seleccionar un rol.',
             'role.in' => 'El rol seleccionado no está permitido.',
@@ -53,6 +63,7 @@ class UserController extends Controller
         DB::transaction(function () use ($validated): void {
             $user = User::create([
                 'name' => trim($validated['name']),
+                'username' => trim($validated['username']),
                 'email' => strtolower(trim($validated['email'])),
                 'password' => Hash::make($validated['password']),
             ]);

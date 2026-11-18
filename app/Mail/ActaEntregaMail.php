@@ -31,7 +31,7 @@ class ActaEntregaMail extends Mailable
         $placa = $this->acta->vehicle ? $this->acta->vehicle->placa : 'S/P';
 
         return new Envelope(
-            subject: "Acta de Entrega Oficial [{$this->acta->folio}] - Vehículo {$placa} - SIG",
+            subject: "Acta de Entrega Oficial [{$this->acta->folio}] - Vehículo {$placa} - Flota Vehicular",
         );
     }
 

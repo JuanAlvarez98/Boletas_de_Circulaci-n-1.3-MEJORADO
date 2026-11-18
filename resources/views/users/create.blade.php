@@ -107,6 +107,22 @@
             </div>
 
             <div class="form-group full-width">
+                <label for="username" class="form-label">Nombre de usuario</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value="{{ old('username') }}"
+                    class="form-control"
+                    maxlength="255"
+                    autocomplete="username"
+                    required>
+                @error('username')
+                    <div class="input-error">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group full-width">
                 <label for="email" class="form-label">Correo</label>
                 <input
                     type="email"
@@ -152,13 +168,13 @@
 
             <div class="form-group full-width">
                 <label for="role" class="form-label">Rol</label>
-                <select id="role" name="role" class="form-control" required>
+                <select id="role" name="role" class="form-control" required onchange="actualizarNotaRol(this.value)">
                     <option value="">Seleccione un rol</option>
                     @foreach ($roles as $role)
                         <option value="{{ $role->slug }}" @selected(old('role') === $role->slug)>
                             @if ($role->slug === 'admin')
                                 Administrador
-                            @elseif ($role->slug === 'operador-emisor')
+                            @elseif ($role->slug === 'operador-emisor' || $role->slug === 'operator')
                                 Operador
                             @elseif ($role->slug === 'supervisor')
                                 Supervisor
@@ -168,6 +184,7 @@
                         </option>
                     @endforeach
                 </select>
+                <div id="role-permission-hint" style="display: none; margin-top: 8px; padding: 10px 14px; border-radius: 8px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; font-size: 12.5px; font-weight: 600;"></div>
                 @error('role')
                     <div class="input-error">{{ $message }}</div>
                 @enderror
@@ -180,4 +197,29 @@
         </div>
     </form>
 </div>
+
+<script>
+function actualizarNotaRol(slug) {
+    const hint = document.getElementById('role-permission-hint');
+    if (!hint) return;
+    if (slug === 'operador-emisor' || slug === 'operator') {
+        hint.textContent = 'Permisos del rol Operador: Acceso a Dashboard y en el menú lateral únicamente al módulo Ficha de Vehículo para ejecutar consultas en el Web Service SAP.';
+        hint.style.display = 'block';
+    } else if (slug === 'supervisor') {
+        hint.textContent = 'Permisos del rol Supervisor: Visualización y auditoría de Panel de Control, Ficha de Vehículo, Boletas y Actas (solo lectura).';
+        hint.style.display = 'block';
+    } else if (slug === 'admin') {
+        hint.textContent = 'Permisos del rol Administrador: Acceso total a todos los módulos operativos, emisión de documentos y gestión de usuarios/roles.';
+        hint.style.display = 'block';
+    } else {
+        hint.style.display = 'none';
+    }
+}
+document.addEventListener('DOMContentLoaded', function () {
+    const select = document.getElementById('role');
+    if (select && select.value) {
+        actualizarNotaRol(select.value);
+    }
+});
+</script>
 @endsection
