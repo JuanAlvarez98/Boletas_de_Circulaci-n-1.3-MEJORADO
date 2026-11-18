@@ -11,7 +11,26 @@ class Vehicle extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['placa', 'numero_equipo', 'chasis', 'motor', 'marca', 'modelo', 'linea', 'anio', 'color', 'naturaleza_origen', 'sap_codigo'];
+    protected $fillable = [
+        'placa',
+        'numero_equipo',
+        'chasis',
+        'motor',
+        'marca',
+        'modelo',
+        'linea',
+        'anio',
+        'color',
+        'naturaleza_origen',
+        'sap_codigo',
+        'dependencia',
+        'denominacion',
+        'estado_sap',
+        'tipo_equipo',
+        'centro_costo',
+        'centro',
+        'kilometraje',
+    ];
 
     protected function casts(): array
     {
@@ -35,6 +54,8 @@ class Vehicle extends Model
 
     public function getNombreCortoAttribute(): string
     {
-        return "{$this->placa} - {$this->marca} {$this->modelo}";
+        $idRef = $this->numero_equipo ? "Eq. {$this->numero_equipo}" : ($this->placa ?: 'S/P');
+        $desc = trim("{$this->marca} {$this->modelo}");
+        return $desc !== '' ? "{$idRef} - {$desc}" : $idRef;
     }
 }

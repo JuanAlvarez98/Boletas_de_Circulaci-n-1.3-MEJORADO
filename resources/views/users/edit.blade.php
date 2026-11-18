@@ -95,16 +95,26 @@
                     
                     <div class="role-info">
                         <span class="role-title">
-                            {{ $role->name }} 
+                            @if($role->slug === 'operador-emisor' || $role->slug === 'operator')
+                                Operador
+                            @else
+                                {{ $role->name }}
+                            @endif
                             @if($role->slug === 'admin')
                                 <span class="badge badge-primary" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">admin</span>
-                            @elseif($role->slug === 'operador-emisor')
-                                <span class="badge badge-success" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">SAP / Emisor</span>
+                            @elseif($role->slug === 'operador-emisor' || $role->slug === 'operator')
+                                <span class="badge badge-success" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">Consulta SAP</span>
                             @elseif($role->slug === 'supervisor')
                                 <span class="badge badge-warning" style="font-size: 10px; padding: 2px 8px; margin-left: 6px;">Auditor</span>
                             @endif
                         </span>
-                        <span class="role-desc">{{ $role->description ?? 'Sin descripción para este rol.' }}</span>
+                        <span class="role-desc">
+                            @if($role->slug === 'operador-emisor' || $role->slug === 'operator')
+                                Acceso a Dashboard y únicamente al módulo Ficha de Vehículo para ejecutar consultas en el Web Service SAP (solo lectura).
+                            @else
+                                {{ $role->description ?? 'Sin descripción para este rol.' }}
+                            @endif
+                        </span>
                     </div>
                 </label>
             @endforeach

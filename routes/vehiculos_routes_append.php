@@ -13,18 +13,22 @@ use Illuminate\Support\Facades\Route;
 | Ficha de Vehículo, Boleta de Circulación, Sticker de Identificación (QR)
 | y Acta de Entrega.
 |
-| - admin y operator: pueden buscar vehículos, emitir e imprimir documentos.
-| - supervisor: acceso de solo lectura para auditoría (listados y detalle).
-|
-| Nota: la "búsqueda" de vehículos hoy consulta la tabla local `vehicles`
-| (MySQL / phpMyAdmin). Cuando se conecte la API de SAP, VehicleController
-| se ajustará para consumir el servicio externo en lugar de la tabla local.
+| - operator / operador-emisor: acceso exclusivo a Ficha de Vehículo
+|   (consulta de solo lectura en el Web Service de SAP).
+| - supervisor: acceso de solo lectura para auditoría (listados, detalle y consulta SAP).
+| - admin: acceso completo para consultar, emitir, sincronizar y anular documentos.
 */
 
+// Módulo Ficha de Vehículo y consulta en vivo al Web Service SAP (admin, operador y supervisor)
 Route::middleware(['auth', 'role:admin,operator,supervisor'])->group(function () {
-
-    // Ficha de Vehículo (búsqueda + detalle, solo lectura para todos los roles)
     Route::get('vehiculos', [VehicleController::class, 'index'])->name('vehicles.index');
+    Route::post('sap/consultar', [VehicleController::class, 'consultarSap'])->name('sap.consultar');
+});
+
+// Listados y detalles operativos de auditoría (solo admin y supervisor)
+Route::middleware(['auth', 'role:admin,supervisor'])->group(function () {
+
+    // Detalle local de vehículo con historial de boletas y actas
     Route::get('vehiculos/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
 
     // Boletas de Circulación (listado + detalle/impresión)
@@ -40,15 +44,12 @@ Route::middleware(['auth', 'role:admin,operator,supervisor'])->group(function ()
     Route::get('actas-entrega/{acta}', [ActaEntregaController::class, 'show'])->name('actas.show');
 });
 
-// Acciones de escritura: solo admin y operador pueden registrar/emitir/anular
-Route::middleware(['auth', 'role:admin,operator'])->group(function () {
+// Acciones de escritura: solo admin puede sincronizar/registrar/emitir/anular
+Route::middleware(['auth', 'role:admin'])->group(function () {
 
-    // Administración local del maestro de vehículos (mientras no exista SAP)
-    Route::get('vehiculos-nuevo', [VehicleController::class, 'create'])->name('vehicles.create');
-    Route::post('vehiculos', [VehicleController::class, 'store'])->name('vehicles.store');
-    Route::get('vehiculos/{vehicle}/editar', [VehicleController::class, 'edit'])->name('vehicles.edit');
-    Route::put('vehiculos/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
-    Route::delete('vehiculos/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+    // Integración SAP API: Sincronización y actualización en base de datos local
+    Route::post('sap/sincronizar', [VehicleController::class, 'sincronizarSap'])->name('sap.sincronizar');
+    Route::post('vehiculos/{vehicle}/actualizar-sap', [VehicleController::class, 'actualizarDesdeSap'])->name('vehicles.actualizar-sap');
 
     // Emisión de boletas
     Route::get('boletas-nueva', [BoletaCirculacionController::class, 'create'])->name('boletas.create');

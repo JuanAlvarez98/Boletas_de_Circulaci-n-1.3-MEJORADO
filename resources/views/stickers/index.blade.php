@@ -27,7 +27,7 @@
         <input type="text" name="q" value="{{ $query }}" placeholder="Buscar por código o placa...">
         <button type="submit" class="btn-primary">Buscar</button>
         @auth
-            @if(Auth::user()->hasAnyRole(['admin', 'operator']))
+            @if(Auth::user()->hasRole('admin'))
                 <a href="{{ route('stickers.create') }}" class="btn-secondary" style="white-space: nowrap;">+ Generar Sticker</a>
             @endif
         @endauth

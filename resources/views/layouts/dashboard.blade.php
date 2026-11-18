@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Panel de Control') - SIG | Secretaría de Seguridad</title>
+    <title>@yield('title', 'Panel de Control') - Flota Vehicular | Secretaría de Seguridad</title>
     
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -653,6 +653,16 @@
         /* ==========================================================
            ALERTAS DEL SISTEMA
            ========================================================== */
+        @keyframes alertFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert, #sap-error-box, #sap-mensaje-error {
+            animation: alertFadeIn 0.25s ease;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
         .alert {
             padding: 14px 18px;
             border-radius: 10px;
@@ -735,25 +745,196 @@
         }
 
         /* Responsive Layout */
+        .mobile-menu-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--primary);
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+        }
+        .mobile-menu-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .sidebar-mobile-header {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-close-btn {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 6px;
+            color: #64748b;
+            padding: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-close-btn:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        .sidebar-backdrop {
+            display: none;
+        }
+
         @media (max-width: 900px) {
-            .app-layout {
-                flex-direction: column;
+            .mobile-menu-btn {
+                display: inline-flex;
             }
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding: 16px;
-            }
-            .main-content {
-                padding: 24px 16px;
+            .sidebar-mobile-header {
+                display: flex;
             }
             .topbar {
                 padding: 0 16px;
+                height: 64px;
+            }
+            .topbar-brand {
+                gap: 10px;
+            }
+            .brand-logo-container {
+                width: 38px;
+                height: 38px;
+            }
+            .brand-logo-container svg {
+                width: 22px;
+                height: 22px;
             }
             .brand-title {
                 font-size: 15px;
             }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 280px;
+                max-width: 85vw;
+                height: 100vh;
+                z-index: 1050;
+                transform: translateX(-100%);
+                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                overflow-y: auto;
+                padding: 18px 16px;
+            }
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+            body.sidebar-open .sidebar-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.5);
+                backdrop-filter: blur(4px);
+                z-index: 1040;
+            }
+            body.sidebar-open {
+                overflow: hidden;
+            }
+            .main-content {
+                padding: 20px 16px;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar {
+                padding: 0 12px;
+                height: 60px;
+            }
+            .brand-institution {
+                display: none;
+            }
+            .brand-title {
+                font-size: 14px;
+            }
+            .brand-badge {
+                font-size: 9.5px;
+                padding: 1px 5px;
+            }
+            .topbar-actions {
+                gap: 8px;
+            }
+            .user-profile {
+                padding-right: 8px;
+                gap: 8px;
+            }
+            .user-role-badge {
+                display: none;
+            }
+            .user-avatar {
+                width: 34px;
+                height: 34px;
+                font-size: 13.5px;
+            }
+            .btn-logout {
+                padding: 7px 10px;
+                font-size: 12px;
+                gap: 5px;
+            }
+            .welcome-section {
+                padding: 16px 14px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .welcome-title {
+                font-size: 19px;
+            }
+            .welcome-subtitle {
+                font-size: 12.5px;
+            }
+            .main-content {
+                padding: 16px 12px;
+            }
+        }
+
+        @media (max-width: 440px) {
+            .user-info {
+                display: none;
+            }
+            .btn-logout span {
+                display: none;
+            }
+            .btn-logout {
+                padding: 8px;
+                border-radius: 8px;
+            }
+        }
+
+        /* Paginación global y restricción de SVGs */
+        nav[role="navigation"] svg,
+        .pagination svg {
+            width: 16px !important;
+            height: 16px !important;
+            max-width: 16px !important;
+            max-height: 16px !important;
+            min-width: 16px !important;
+            min-height: 16px !important;
+            display: inline-block !important;
+            vertical-align: middle;
+        }
+
+        .w-5, .h-5 {
+            width: 16px !important;
+            height: 16px !important;
+            max-width: 16px !important;
+            max-height: 16px !important;
         }
     </style>
     @yield('styles')
@@ -762,20 +943,27 @@
 
     <!-- Barra Superior Institucional -->
     <header class="topbar">
-        <a href="{{ route('dashboard') }}" class="topbar-brand">
-            <div class="brand-logo-container">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 9.07-7 10.18-3.87-1.11-7-5.51-7-10.18V6.3l7-3.12zm-1 5v6h2v-6h-2zm0 8v2h2v-2h-2z"/>
+        <div style="display: flex; align-items: center; gap: 4px;">
+            <button type="button" class="mobile-menu-btn" onclick="toggleSidebarMenu()" aria-label="Abrir menú">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
-            </div>
-            <div class="brand-text-wrap">
-                <span class="brand-institution">Secretaría de Seguridad</span>
-                <span class="brand-title">
-                    Control de Boletas
-                    <span class="brand-badge">SIG</span>
-                </span>
-            </div>
-        </a>
+            </button>
+            <a href="{{ route('dashboard') }}" class="topbar-brand">
+                <div class="brand-logo-container">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 9.07-7 10.18-3.87-1.11-7-5.51-7-10.18V6.3l7-3.12zm-1 5v6h2v-6h-2zm0 8v2h2v-2h-2z"/>
+                    </svg>
+                </div>
+                <div class="brand-text-wrap">
+                    <span class="brand-institution">Secretaría de Seguridad</span>
+                    <span class="brand-title">
+                        Flota Vehicular
+                        <span class="brand-badge">SIG</span>
+                    </span>
+                </div>
+            </a>
+        </div>
 
         <div class="topbar-actions">
             @auth
@@ -791,10 +979,10 @@
                         <span class="user-role-badge">
                             @if(Auth::user()->hasRole('admin'))
                                 Administrador SIG
-                            @elseif(Auth::user()->hasRole('operador-emisor'))
-                                Operador Emisor
                             @elseif(Auth::user()->hasRole('supervisor'))
                                 Supervisor
+                            @elseif(Auth::user()->hasRole('operador-emisor'))
+                                Operador
                             @else
                                 Funcionario
                             @endif
@@ -815,24 +1003,37 @@
         </div>
     </header>
 
+    <!-- Backdrop para cerrar menú en móviles -->
+    <div class="sidebar-backdrop" onclick="toggleSidebarMenu()"></div>
+
     <!-- Contenedor Lateral + Contenido -->
     <div class="app-layout">
         
         <!-- Sidebar Navigation con Iconos Multicolores -->
         <aside class="sidebar">
+            <div class="sidebar-mobile-header">
+                <span style="font-size: 13px; font-weight: 800; color: var(--primary); letter-spacing: 0.5px;">MENÚ PRINCIPAL</span>
+                <button type="button" class="sidebar-close-btn" onclick="toggleSidebarMenu()" aria-label="Cerrar menú">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
             <div class="sidebar-nav">
                 
-                <div class="sidebar-heading">Menú Principal</div>
+                @if(Auth::user()->hasAnyRole(['admin', 'supervisor']))
+                    <div class="sidebar-heading">Menú Principal</div>
 
-                <!-- 1. Dashboard (Índigo / Azul Eléctrico) -->
-                <a href="{{ route('dashboard') }}" class="nav-link {{ Route::is('dashboard') ? 'active' : '' }}">
-                    <div class="nav-icon-badge icon-dashboard">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
-                        </svg>
-                    </div>
-                    <span>Panel de Control</span>
-                </a>
+                    <!-- 1. Dashboard (Índigo / Azul Eléctrico) -->
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ Route::is('dashboard') ? 'active' : '' }}">
+                        <div class="nav-icon-badge icon-dashboard">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+                            </svg>
+                        </div>
+                        <span>Panel de Control</span>
+                    </a>
+                @endif
 
                 <!-- Módulos Operativos -->
                 @if(Auth::user()->hasAnyRole(['admin', 'operador-emisor', 'supervisor']))
@@ -848,25 +1049,27 @@
                         <span>Ficha de Vehículo</span>
                     </a>
 
-                    <!-- 3. Boletas de Circulación (Ámbar / Naranja) -->
-                    <a href="{{ route('boletas.index') }}" class="nav-link {{ Route::is('boletas.*') ? 'active' : '' }}">
-                        <div class="nav-icon-badge icon-boleta">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <span>Boletas de Circulación</span>
-                    </a>
+                    @if(Auth::user()->hasAnyRole(['admin', 'supervisor']))
+                        <!-- 3. Boletas de Circulación (Ámbar / Naranja) -->
+                        <a href="{{ route('boletas.index') }}" class="nav-link {{ Route::is('boletas.*') ? 'active' : '' }}">
+                            <div class="nav-icon-badge icon-boleta">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <span>Boletas de Circulación</span>
+                        </a>
 
-                    <!-- 4. Actas de Entrega (Violeta / Púrpura) -->
-                    <a href="{{ route('actas.index') }}" class="nav-link {{ Route::is('actas.*') ? 'active' : '' }}">
-                        <div class="nav-icon-badge icon-acta">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg>
-                        </div>
-                        <span>Actas de Entrega</span>
-                    </a>
+                        <!-- 4. Actas de Entrega (Violeta / Púrpura) -->
+                        <a href="{{ route('actas.index') }}" class="nav-link {{ Route::is('actas.*') ? 'active' : '' }}">
+                            <div class="nav-icon-badge icon-acta">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg>
+                            </div>
+                            <span>Actas de Entrega</span>
+                        </a>
+                    @endif
                 @endif
 
                 <!-- Administración -->
@@ -910,6 +1113,70 @@
 
     </div>
 
+    <script>
+    function toggleSidebarMenu() {
+        document.body.classList.toggle('sidebar-open');
+    }
+
+    (function () {
+        const ALERT_TIMEOUT_MS = 5000;
+        const timers = new WeakMap();
+
+        function programarAutoOcultarAlerta(el) {
+            if (!el || window.getComputedStyle(el).display === 'none') return;
+
+            if (timers.has(el)) {
+                clearTimeout(timers.get(el));
+            }
+
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+
+            const timerId = setTimeout(function () {
+                el.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-6px)';
+                setTimeout(function () {
+                    el.style.display = 'none';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 350);
+            }, ALERT_TIMEOUT_MS);
+
+            timers.set(el, timerId);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selector = '.alert, .input-error, #sap-error-box, #sap-mensaje-error';
+            document.querySelectorAll(selector).forEach(programarAutoOcultarAlerta);
+
+            const observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
+                    if (mutation.type === 'attributes' && mutation.target instanceof HTMLElement) {
+                        const target = mutation.target;
+                        if (target.matches(selector) && target.style.display !== 'none' && target.style.opacity !== '0') {
+                            programarAutoOcultarAlerta(target);
+                        }
+                    } else if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function (node) {
+                            if (node instanceof HTMLElement) {
+                                if (node.matches(selector)) programarAutoOcultarAlerta(node);
+                                node.querySelectorAll(selector).forEach(programarAutoOcultarAlerta);
+                            }
+                        });
+                    }
+                });
+            });
+
+            observer.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['style', 'class'],
+                childList: true,
+                subtree: true
+            });
+        });
+    })();
+    </script>
     @yield('scripts')
 </body>
 </html>

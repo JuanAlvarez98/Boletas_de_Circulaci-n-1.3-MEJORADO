@@ -13,11 +13,11 @@
         <!-- Cabecera Institucional -->
         <div style="background-color: #f8fafc; border-top: 5px solid #1e40af; border-bottom: 1px solid #e2e8f0; padding: 26px 20px 18px; text-align: center;">
             <div style="margin-bottom: 12px;">
-                <img src="{{ $message->embed(public_path('images/logo-sig.png')) }}" alt="SIG - Control de Boletas" style="height: 105px; max-height: 115px; width: auto; object-fit: contain; display: inline-block;">
+                <img src="{{ $message->embed(public_path('images/logo-sig.png')) }}" alt="SIG - Flota Vehicular" style="height: 105px; max-height: 115px; width: auto; object-fit: contain; display: inline-block;">
             </div>
             
             <h1 style="margin: 6px 0 8px; font-size: 21px; font-weight: 700; color: #0f172a; line-height: 1.3;">
-                Acta de Entrega - Boletas de Circulación
+                Acta de Entrega - Flota Vehicular
             </h1>
             
             <div style="margin-top: 6px;">
@@ -33,7 +33,7 @@
                 Estimado(a) <strong>{{ $acta->recibe_nombre }}</strong>,
             </p>
             <p style="font-size: 13.5px; line-height: 1.5; color: #475569; margin-bottom: 20px;">
-                Le notificamos que se ha registrado y formalizado la entrega oficial del vehículo detallado a continuación en el SIG Control de Boletas de Circulación:
+                Le notificamos que se ha registrado y formalizado la entrega oficial del vehículo detallado a continuación en el SIG Flota Vehicular:
             </p>
             
             <!-- Resumen Destacado de Datos del Vehículo y Documento -->

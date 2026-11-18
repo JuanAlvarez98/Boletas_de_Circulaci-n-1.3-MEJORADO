@@ -36,12 +36,18 @@ class ForgotPasswordController extends Controller
             $request->only('email')
         );
 
+        $messages = [
+            Password::RESET_LINK_SENT => 'Hemos enviado el enlace de recuperación de contraseña a su correo electrónico.',
+            Password::INVALID_USER => 'No encontramos ningún usuario registrado con esa dirección de correo electrónico.',
+            Password::RESET_THROTTLED => 'Por favor, espere unos momentos antes de solicitar otro enlace.',
+        ];
+
         if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+            return back()->with('status', $messages[$status]);
         }
 
         throw ValidationException::withMessages([
-            'email' => [__($status)],
+            'email' => [$messages[$status] ?? __($status)],
         ]);
     }
 }

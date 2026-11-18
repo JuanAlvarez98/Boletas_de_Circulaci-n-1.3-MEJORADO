@@ -68,3 +68,35 @@
         </div>
     </form>
 @endsection
+
+@section('scripts')
+<script>
+    (function() {
+        function redirigirAReset(url) {
+            if (!url) return;
+            window.location.replace(url);
+        }
+
+        // Comunicación entre pestañas: si se abre el enlace de restablecimiento desde el correo,
+        // esta pestaña de "¿Olvidó su contraseña?" se reemplaza automáticamente por la pantalla de Nueva Contraseña.
+        if ('BroadcastChannel' in window) {
+            const channel = new BroadcastChannel('flota_password_reset');
+            channel.onmessage = function(event) {
+                if (event.data && event.data.type === 'OPEN_RESET_IN_FORGOT_TAB' && event.data.url) {
+                    channel.postMessage({ type: 'ACK_RESET_IN_FORGOT_TAB' });
+                    redirigirAReset(event.data.url);
+                }
+            };
+        }
+
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'flota_reset_target_url' && event.newValue) {
+                try {
+                    localStorage.setItem('flota_reset_ack', String(Date.now()));
+                } catch (e) {}
+                redirigirAReset(event.newValue);
+            }
+        });
+    })();
+</script>
+@endsection

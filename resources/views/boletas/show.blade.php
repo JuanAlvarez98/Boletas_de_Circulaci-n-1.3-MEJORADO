@@ -449,7 +449,7 @@
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
             <a href="{{ route('vehicles.show', $boleta->vehicle) }}" class="btn-secondary">← Volver a la ficha</a>
             <button onclick="window.print()" class="btn-primary">Imprimir boleta</button>
-            @if(Auth::user()->hasAnyRole(['admin','operator']) && $boleta->estado === 'vigente')
+            @if(Auth::user()->hasRole('admin') && $boleta->estado === 'vigente')
                 <form class="cancel-form" action="{{ route('boletas.destroy', $boleta) }}" method="POST" onsubmit="return confirm('¿Anular esta boleta?')">
                     @csrf
                     @method('DELETE')

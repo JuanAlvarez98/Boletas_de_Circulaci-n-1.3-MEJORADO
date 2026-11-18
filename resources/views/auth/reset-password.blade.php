@@ -3,6 +3,45 @@
 @section('title', 'Restablecer Contraseña')
 
 @section('styles')
+<script>
+    (function() {
+        // Si esta pantalla se abrió desde el enlace del correo en una pestaña nueva mientras
+        // la pestaña de "¿Olvidó su contraseña?" sigue abierta, recarga la pestaña anterior con
+        // esta ruta de Nueva Contraseña y cierra esta pestaña duplicada.
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has('loaded_in_forgot_tab')) {
+            const targetUrl = new URL(window.location.href);
+            targetUrl.searchParams.set('loaded_in_forgot_tab', '1');
+            const finalUrl = targetUrl.toString();
+
+            if ('BroadcastChannel' in window) {
+                const channel = new BroadcastChannel('flota_password_reset');
+                channel.onmessage = function(event) {
+                    if (event.data && event.data.type === 'ACK_RESET_IN_FORGOT_TAB') {
+                        channel.close();
+                        window.close();
+                    }
+                };
+                channel.postMessage({
+                    type: 'OPEN_RESET_IN_FORGOT_TAB',
+                    url: finalUrl
+                });
+            }
+
+            try {
+                window.addEventListener('storage', function(event) {
+                    if (event.key === 'flota_reset_ack') {
+                        window.close();
+                    }
+                });
+                localStorage.setItem('flota_reset_target_url', finalUrl);
+                setTimeout(function() {
+                    localStorage.removeItem('flota_reset_target_url');
+                }, 800);
+            } catch (e) {}
+        }
+    })();
+</script>
 <style>
     .policy-list {
         margin-top: 12px;

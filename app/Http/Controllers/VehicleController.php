@@ -3,47 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Services\SapVehicleService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Controlador de Vehículos.
+ * Controlador de Ficha de Vehículos.
  *
- * IMPORTANTE: En producción, la búsqueda de vehículos se hará llamando a la
- * API de SAP (solo consulta, no se editará información desde aquí). Mientras
- * esa integración no esté disponible, los datos se leen/administran en una
- * tabla local de MySQL (vehicles) para poder maquetar y probar el resto de
- * módulos (boleta, sticker, acta).
+ * El sistema no realiza modificaciones manuales (ingresar, editar o eliminar números de equipos/fichas).
+ * La búsqueda del número de equipo se realiza en tiempo real exclusivamente en el Web Service de SAP PM.
+ * Solo se extraen los campos provistos por SAP; cualquier campo no presente se mantiene en blanco.
  */
 class VehicleController extends Controller
 {
     /**
-     * Buscador de vehículos (simula la consulta contra SAP).
+     * Pantalla de Ficha de Vehículos.
+     * Busca el número de equipo directamente en SAP PM (no en la base de datos local).
      */
-    public function index(Request $request): View
+    public function index(Request $request, SapVehicleService $sapService): View
     {
-        $query = trim((string) $request->get('q', ''));
+        $numeroEquipo = trim((string) ($request->get('numero_equipo') ?: $request->get('q', '')));
+        $sapError = null;
+        $sapData = null;
 
-        $vehicles = Vehicle::query()
-            ->when($query !== '', function ($builder) use ($query) {
-                $builder->where(function ($sub) use ($query) {
-                    $sub->where('placa', 'like', "%{$query}%")
-                        ->orWhere('numero_equipo', 'like', "%{$query}%")
-                        ->orWhere('chasis', 'like', "%{$query}%")
-                        ->orWhere('marca', 'like', "%{$query}%")
-                        ->orWhere('modelo', 'like', "%{$query}%");
-                });
-            })
-            ->orderBy('placa')
-            ->paginate(10)
-            ->withQueryString();
+        // La búsqueda se realiza en tiempo real directamente en SAP (solo lectura y en memoria, sin persistir en BD local)
+        if ($numeroEquipo !== '') {
+            try {
+                $sapData = $sapService->consultar($numeroEquipo);
+                if (!$sapData) {
+                    $sapError = "No se encontró ningún vehículo con el número de equipo '{$numeroEquipo}' en SAP PM.";
+                }
+            } catch (\Exception $e) {
+                $sapError = 'Error al consultar SAP PM: ' . $e->getMessage();
+            }
+        }
 
-        return view('vehicles.index', compact('vehicles', 'query'));
+        return view('vehicles.index', compact('sapData', 'sapError', 'numeroEquipo'));
     }
 
     /**
-     * Ficha completa del vehículo.
+     * Ficha técnica y documental completa del vehículo.
      */
     public function show(Vehicle $vehicle): View
     {
@@ -55,70 +56,164 @@ class VehicleController extends Controller
     }
 
     /**
-     * Formulario para registrar un vehículo en la base local
-     * (mientras no exista la conexión real con SAP).
+     * Consulta un vehículo directamente en el Web Service de SAP por su número de equipo (llamada asíncrona/AJAX).
      */
-    public function create(): View
+    public function consultarSap(Request $request, SapVehicleService $sapService): JsonResponse
     {
-        return view('vehicles.create');
+        $request->validate([
+            'numero_equipo' => 'required|string|max:50',
+        ]);
+
+        $codigo = trim($request->input('numero_equipo'));
+
+        try {
+            $sapData = $sapService->consultar($codigo);
+
+            if (!$sapData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "No se encontró ningún vehículo con el número de equipo '{$codigo}' en SAP PM.",
+                ], 404);
+            }
+
+            // Los datos se devuelven en memoria para mostrarlos temporalmente en la ficha
+            return response()->json([
+                'success' => true,
+                'data' => $sapData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al conectar con SAP: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function store(Request $request): RedirectResponse
+    /**
+     * Actualiza la ficha técnica del vehículo consultando los datos más recientes en SAP PM.
+     */
+    public function actualizarDesdeSap(Vehicle $vehicle, SapVehicleService $sapService): JsonResponse|RedirectResponse
     {
-        $data = $this->validarDatos($request);
+        $codigo = $vehicle->numero_equipo ?? $vehicle->sap_codigo;
 
-        $vehicle = Vehicle::create($data);
-
-        return redirect()->route('vehicles.show', $vehicle)->with('status', 'Vehículo registrado exitosamente.');
-    }
-
-    public function edit(Vehicle $vehicle): View
-    {
-        return view('vehicles.edit', compact('vehicle'));
-    }
-
-    public function update(Request $request, Vehicle $vehicle): RedirectResponse
-    {
-        $data = $this->validarDatos($request, $vehicle->id);
-
-        $vehicle->update($data);
-
-        return redirect()->route('vehicles.show', $vehicle)->with('status', 'Datos del vehículo actualizados.');
-    }
-
-    public function destroy(Vehicle $vehicle): RedirectResponse
-    {
-        if ($vehicle->boletas()->exists() || $vehicle->stickers()->exists() || $vehicle->actasEntrega()->exists()) {
-            return back()->withErrors(['vehicle' => 'No se puede retirar un vehículo que tiene historial documental.']);
+        if (!$codigo) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este vehículo no cuenta con un número de equipo asignado para consultar SAP.',
+                ], 422);
+            }
+            return back()->withErrors(['sap' => 'Este vehículo no cuenta con un número de equipo asignado para consultar SAP.']);
         }
 
-        $vehicle->delete();
+        try {
+            $sapData = $sapService->consultar($codigo);
 
-        return redirect()->route('vehicles.index')->with('status', 'Vehículo eliminado del registro local.');
+            if (!$sapData) {
+                if (request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "No se encontró información para el equipo '{$codigo}' en SAP PM.",
+                    ], 404);
+                }
+                return back()->withErrors(['sap' => "No se encontró información para el equipo '{$codigo}' en SAP PM."]);
+            }
+
+            $sapService->sincronizarLocalmente($sapData);
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Ficha técnica actualizada exitosamente desde SAP PM.',
+                    'data' => $sapData,
+                ]);
+            }
+
+            return back()->with('status', 'Ficha técnica actualizada exitosamente con los datos oficiales de SAP.');
+        } catch (\Exception $e) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al conectar con SAP: ' . $e->getMessage(),
+                ], 500);
+            }
+            return back()->withErrors(['sap' => 'Error al conectar con SAP: ' . $e->getMessage()]);
+        }
     }
 
-    private function validarDatos(Request $request, ?int $ignoreId = null): array
+    /**
+     * Sincroniza el vehículo consultado desde SAP en la base de datos local
+     * permitiendo continuar hacia la emisión de boleta, sticker o acta.
+     */
+    public function sincronizarSap(Request $request, SapVehicleService $sapService): JsonResponse|RedirectResponse
     {
-        return $request->validate([
-            'placa' => ['required', 'string', 'max:20', 'unique:vehicles,placa'.($ignoreId ? ",{$ignoreId}" : '')],
-            'numero_equipo' => ['nullable', 'string', 'max:50', 'unique:vehicles,numero_equipo'.($ignoreId ? ",{$ignoreId}" : '')],
-            'chasis' => ['required', 'string', 'max:50', 'unique:vehicles,chasis'.($ignoreId ? ",{$ignoreId}" : '')],
-            'motor' => ['nullable', 'string', 'max:50'],
-            'marca' => ['required', 'string', 'max:100'],
-            'modelo' => ['required', 'string', 'max:100'],
-            'linea' => ['nullable', 'string', 'max:100'],
-            'anio' => ['nullable', 'integer', 'min:1950', 'max:'.(date('Y') + 1)],
-            'color' => ['nullable', 'string', 'max:50'],
-            'naturaleza_origen' => ['nullable', 'string', 'max:50'],
-            'sap_codigo' => ['nullable', 'string', 'max:50'],
-        ], [
-            'placa.required' => 'La placa es obligatoria.',
-            'numero_equipo.unique' => 'Ya existe un vehículo registrado con este número de equipo.', 
-            'placa.unique' => 'Ya existe un vehículo registrado con esta placa.',
-            'chasis.required' => 'El número de chasis es obligatorio.',
-            'chasis.unique' => 'Ya existe un vehículo registrado con este chasis.',
-            'marca.required' => 'La marca es obligatoria.',
-            'modelo.required' => 'El modelo es obligatorio.',
+        $validated = $request->validate([
+            'numero_equipo' => 'required|string|max:50',
+            'sap_codigo' => 'nullable|string|max:50',
+            'marca' => 'nullable|string|max:100',
+            'modelo' => 'nullable|string|max:100',
+            'linea' => 'nullable|string|max:100',
+            'anio' => 'nullable|integer',
+            'naturaleza_origen' => 'nullable|string|max:50',
+            'dependencia' => 'nullable|string|max:255',
+            'denominacion' => 'nullable|string|max:255',
+            'estado_sap' => 'nullable|string|max:100',
+            'tipo_equipo' => 'nullable|string|max:100',
+            'centro_costo' => 'nullable|string|max:50',
+            'centro' => 'nullable|string|max:50',
+            'kilometraje' => 'nullable|string|max:50',
+            'placa' => 'nullable|string|max:50',
+            'chasis' => 'nullable|string|max:50',
+            'motor' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:50',
+            'redirect_to' => 'nullable|string',
         ]);
+
+        if (empty($validated['marca'])) {
+            $fresh = $sapService->consultar($validated['numero_equipo']);
+            $sapData = $fresh ?: [
+                'numero_equipo' => $validated['numero_equipo'],
+                'sap_codigo' => $validated['sap_codigo'] ?? $validated['numero_equipo'],
+            ];
+        } else {
+            $sapData = [
+                'numero_equipo' => $validated['numero_equipo'],
+                'sap_codigo' => $validated['sap_codigo'] ?? $validated['numero_equipo'],
+                'marca' => $validated['marca'] ?? null,
+                'modelo' => $validated['modelo'] ?? null,
+                'linea' => $validated['linea'] ?? null,
+                'anio' => $validated['anio'] ?? null,
+                'naturaleza_origen' => $validated['naturaleza_origen'] ?? null,
+                'dependencia' => $validated['dependencia'] ?? null,
+                'denominacion' => $validated['denominacion'] ?? null,
+                'estado_sap' => $validated['estado_sap'] ?? null,
+                'tipo_equipo' => $validated['tipo_equipo'] ?? null,
+                'centro_costo' => $validated['centro_costo'] ?? null,
+                'centro' => $validated['centro'] ?? null,
+                'kilometraje' => $validated['kilometraje'] ?? null,
+            ];
+        }
+
+        $complementos = [
+            'placa' => $validated['placa'] ?? null,
+            'chasis' => $validated['chasis'] ?? null,
+            'motor' => $validated['motor'] ?? null,
+            'color' => $validated['color'] ?? null,
+        ];
+
+        $vehicle = $sapService->sincronizarLocalmente($sapData, $complementos);
+
+        $redirectTo = $request->input('redirect_to', 'vehicles.show');
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'vehicle' => $vehicle,
+                'redirect_url' => route($redirectTo, ['vehicle_id' => $vehicle->id, 'vehicle' => $vehicle->id]),
+            ]);
+        }
+
+        return redirect()->route($redirectTo, ['vehicle_id' => $vehicle->id, 'vehicle' => $vehicle->id])
+            ->with('status', 'Vehículo consultado correctamente desde SAP.');
     }
 }

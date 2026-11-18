@@ -68,8 +68,8 @@
                                     <?php $__empty_2 = true; $__currentLoopData = $user->roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_2 = false; ?>
                                         <?php if($role->slug === 'admin'): ?>
                                             <span class="badge badge-primary">Admin</span>
-                                        <?php elseif($role->slug === 'operador-emisor'): ?>
-                                            <span class="badge badge-success">Operador Emisor</span>
+                                        <?php elseif($role->slug === 'operador-emisor' || $role->slug === 'operator'): ?>
+                                            <span class="badge badge-success">Operador</span>
                                         <?php elseif($role->slug === 'supervisor'): ?>
                                             <span class="badge badge-warning">Supervisor</span>
                                         <?php else: ?>

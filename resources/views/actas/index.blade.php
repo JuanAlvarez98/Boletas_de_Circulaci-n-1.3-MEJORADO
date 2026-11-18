@@ -70,7 +70,7 @@
             <p class="welcome-subtitle">Registro y entrega formal de vehículos con notificación digital automatizada por correo.</p>
         </div>
         @auth
-            @if(Auth::user()->hasAnyRole(['admin', 'operador-emisor', 'operator']))
+            @if(Auth::user()->hasRole('admin'))
                 <a href="{{ route('actas.create') }}" class="btn-primary">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>

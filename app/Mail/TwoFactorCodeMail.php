@@ -28,7 +28,7 @@ class TwoFactorCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Código de Verificación 2FA - Control de Boletas de Circulación',
+            subject: 'Código de Verificación 2FA - Flota Vehicular',
         );
     }
 

@@ -51,13 +51,25 @@
                     @forelse($roles as $role)
                         <tr>
                             <td>
-                                <strong style="color: var(--text-main); font-size: 14px;">{{ $role->name }}</strong>
+                                <strong style="color: var(--text-main); font-size: 14px;">
+                                    @if($role->slug === 'operador-emisor' || $role->slug === 'operator')
+                                        Operador
+                                    @else
+                                        {{ $role->name }}
+                                    @endif
+                                </strong>
                             </td>
                             <td>
                                 <span class="badge badge-primary" style="font-family: monospace;">{{ $role->slug }}</span>
                             </td>
                             <td>
-                                <span style="color: var(--text-secondary); font-size: 13.5px;">{{ $role->description ?? 'Sin descripción disponible.' }}</span>
+                                <span style="color: var(--text-secondary); font-size: 13.5px;">
+                                    @if($role->slug === 'operador-emisor' || $role->slug === 'operator')
+                                        Acceso a Dashboard y únicamente al módulo Ficha de Vehículo para ejecutar consultas en el Web Service SAP (solo lectura).
+                                    @else
+                                        {{ $role->description ?? 'Sin descripción disponible.' }}
+                                    @endif
+                                </span>
                             </td>
                             <td style="text-align: center;">
                                 <span class="badge" style="background-color: #f1f5f9; color: var(--text-main); font-size: 13px; font-weight: 700; border: 1px solid #cbd5e1; padding: 4px 10px;">

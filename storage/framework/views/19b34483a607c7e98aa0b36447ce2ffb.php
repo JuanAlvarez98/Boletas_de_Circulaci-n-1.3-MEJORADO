@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $__env->yieldContent('title', 'Acceso al Sistema'); ?> - Control de Boletas de Circulación</title>
+    <title><?php echo $__env->yieldContent('title', 'Acceso al Sistema'); ?> - Flota Vehicular</title>
     
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -285,12 +285,19 @@
         }
 
         /* Mensajes de Alerta y Error */
+        @keyframes alertFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
             font-size: 13px;
             margin-bottom: 20px;
             line-height: 1.5;
+            animation: alertFadeIn 0.25s ease;
+            transition: opacity 0.35s ease, transform 0.35s ease;
         }
 
         .alert-error {
@@ -391,6 +398,41 @@
         </div>
     </div>
 
+    <script>
+    (function () {
+        const ALERT_TIMEOUT_MS = 5000;
+        const timers = new WeakMap();
+
+        function programarAutoOcultarAlerta(el) {
+            if (!el || window.getComputedStyle(el).display === 'none') return;
+
+            if (timers.has(el)) {
+                clearTimeout(timers.get(el));
+            }
+
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+
+            const timerId = setTimeout(function () {
+                el.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-6px)';
+                setTimeout(function () {
+                    el.style.display = 'none';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 350);
+            }, ALERT_TIMEOUT_MS);
+
+            timers.set(el, timerId);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selector = '.alert, .input-error';
+            document.querySelectorAll(selector).forEach(programarAutoOcultarAlerta);
+        });
+    })();
+    </script>
     <?php echo $__env->yieldContent('scripts'); ?>
 </body>
 </html>

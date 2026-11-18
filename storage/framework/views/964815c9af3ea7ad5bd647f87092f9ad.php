@@ -447,7 +447,7 @@
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
             <a href="<?php echo e(route('vehicles.show', $boleta->vehicle)); ?>" class="btn-secondary">← Volver a la ficha</a>
             <button onclick="window.print()" class="btn-primary">Imprimir boleta</button>
-            <?php if(Auth::user()->hasAnyRole(['admin','operator']) && $boleta->estado === 'vigente'): ?>
+            <?php if(Auth::user()->hasRole('admin') && $boleta->estado === 'vigente'): ?>
                 <form class="cancel-form" action="<?php echo e(route('boletas.destroy', $boleta)); ?>" method="POST" onsubmit="return confirm('¿Anular esta boleta?')">
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('DELETE'); ?>

@@ -14,43 +14,87 @@
     }
     .filter-form {
         display: flex;
-        gap: 12px;
+        gap: 8px;
         align-items: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+    }
+    .filter-form > * {
+        flex-shrink: 0;
     }
     .filter-input-wrap {
         position: relative;
-        flex-grow: 1;
-        min-width: 220px;
+        flex: 1 1 auto;
+        flex-shrink: 1 !important;
+        min-width: 150px;
+    }
+    .filter-date-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
     .filter-input-wrap svg {
         position: absolute;
-        left: 14px;
+        left: 16px;
         top: 50%;
         transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
-        color: var(--text-muted);
+        width: 20px;
+        height: 20px;
+        color: #64748b;
         pointer-events: none;
     }
     .filter-control {
-        padding: 9px 14px;
+        padding: 13px 16px;
         border: 1.5px solid #cbd5e1;
-        border-radius: 9px;
-        font-size: 13.5px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
         outline: none;
         transition: all 0.2s ease;
-        background-color: #f8fafc;
+        background-color: #ffffff;
         color: #0f172a;
+        font-family: inherit;
     }
     .filter-input-wrap .filter-control {
         width: 100%;
-        padding-left: 40px;
+        padding-left: 48px;
     }
     .filter-control:focus {
-        border-color: var(--primary-hover);
-        background-color: #ffffff;
-        box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    }
+    select.filter-control,
+    input[type="date"].filter-control {
+        padding: 13px 8px;
+        font-size: 13.5px;
+    }
+    .filter-label {
+        font-size: 12.5px;
+        color: #475569;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .filter-btn {
+        padding: 13px 14px;
+        font-size: 13.5px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    .filter-btn-clear {
+        padding: 13px 14px;
+        font-size: 13.5px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    @media (max-width: 1024px) {
+        .filter-form {
+            flex-wrap: wrap;
+        }
+        .filter-input-wrap {
+            flex-basis: 100%;
+        }
     }
     .placa-pill {
         font-family: monospace;
@@ -74,7 +118,7 @@
             <p class="welcome-subtitle">Historial de boletas emitidas, estado de vigencia y autorizaciones de circulación.</p>
         </div>
         @auth
-            @if(Auth::user()->hasAnyRole(['admin', 'operador-emisor', 'operator']))
+            @if(Auth::user()->hasRole('admin'))
                 <a href="{{ route('boletas.create') }}" class="btn-primary">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -99,7 +143,7 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input type="text" name="q" value="{{ $query }}" class="filter-control" placeholder="Buscar por folio o placa...">
+                <input type="text" name="q" value="{{ $query }}" class="filter-control" placeholder="Buscar por folio o número de equipo...">
             </div>
             
             <select name="estado" class="filter-control">
@@ -109,20 +153,23 @@
                 @endforeach
             </select>
 
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 12.5px; color: var(--text-muted);">Desde:</span>
+            <div class="filter-date-group">
+                <span class="filter-label">Desde:</span>
                 <input type="date" name="desde" value="{{ request('desde') }}" class="filter-control" aria-label="Desde">
             </div>
 
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 12.5px; color: var(--text-muted);">Hasta:</span>
+            <div class="filter-date-group">
+                <span class="filter-label">Hasta:</span>
                 <input type="date" name="hasta" value="{{ request('hasta') }}" class="filter-control" aria-label="Hasta">
             </div>
 
-            <button type="submit" class="btn-primary">Filtrar</button>
+            <button type="submit" class="btn-primary filter-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18l-7 8.5V19l-4 2v-8.5L3 4z"/></svg>
+                <span>Filtrar</span>
+            </button>
             
             @if(request()->hasAny(['q', 'estado', 'desde', 'hasta']))
-                <a href="{{ route('boletas.index') }}" class="btn-secondary">Limpiar</a>
+                <a href="{{ route('boletas.index') }}" class="btn-secondary filter-btn-clear">Limpiar</a>
             @endif
         </form>
     </div>

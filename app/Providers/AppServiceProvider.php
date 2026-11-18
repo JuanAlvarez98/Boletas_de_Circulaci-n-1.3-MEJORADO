@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        ResetPassword::toMailUsing(function (object $notifiable, string $token): MailMessage {
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
+            $expireMinutes = config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60);
+
+            return (new MailMessage)
+                ->subject('Restablecimiento de Contraseña - Flota Vehicular')
+                ->greeting('¡Hola!')
+                ->line('Está recibiendo este correo electrónico porque recibimos una solicitud de restablecimiento de contraseña para su cuenta.')
+                ->action('Restablecer Contraseña', $resetUrl)
+                ->line("Este enlace de restablecimiento de contraseña expirará en {$expireMinutes} minutos.")
+                ->line('Si usted no solicitó un restablecimiento de contraseña, no es necesario realizar ninguna otra acción.')
+                ->salutation("Saludos,\nFlota Vehicular");
+        });
     }
 }
